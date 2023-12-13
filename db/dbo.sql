@@ -1,0 +1,202 @@
+DROP TABLE IF EXIST Rol CASCADE;
+CREATE TABLE Rol(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+imagen VARCHAR(255) NOT NULL,
+ruta VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+
+DROP TABLE IF EXISTS Usuario CASCADE;
+CREATE TABLE Usuario(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR (255) NOT NULL,
+aPaterno VARCHAR(255) NOT NULL,
+aMaterno VARCHAR(255) NOT NULL,
+imagen VARCHAR(255) NOT NULL,
+email VARCHAR(255) NOT NULL,
+telefono VARCHAR(255) NOT NULL,
+contrasenia VARCHAR(255) NOT NULL,
+fechaNacimiento DATE NOT NULL,
+imagen VARCHAR(255) NULL,
+activo BOOLEAN NULL,
+sesionToken VARCHAR(255) NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Repartidor(
+id BIGSERIAL PRIMARY KEY,
+idUsuario BIGINT REFERENCES Usuario(id),
+anversoCI VARCHAR(255) NOT NULL,
+reversoCI VARCHAR(255) NOT NULL,
+anversoLicencia VARCHAR(255) NOT NULL,
+reversoLicencia VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+);
+
+CREATE TABLE MarcaVehiculo(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE ModeloVehiculo(
+id BIGSERIAL PRIMARY KEY,
+idMarcaVehiculo BIGINT REFERENCES MarcaVehiculo(id),
+nombre VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Usuario_Rol(
+idUsuario BIGINT,
+idRol BIGINT,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+PRIMARY KEY (idUsuario, idRol),
+FOREIGN KEY (idUsuario) REFERENCES Usuario(id),
+FOREIGN KEY (idRol) REFERENCES Rol(id)
+);
+
+CREATE TABLE Zona(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+referencia VARCHAR(255) NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Domicilio(
+id BIGSERIAL PRIMARY KEY,
+nombreBarrio VARCHAR(255) NOT NULL,
+condominioEdificio VARCHAR(255) NULL,
+calle VARCHAR(255) NOT NULL,
+nroCasa VARCHAR(255) NOT NULL,
+descripcion VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Direccion(
+id BIGSERIAL PRIMARY KEY,
+idUsuario BIGINT REFERENCES Usuario(id),
+latitud DECIMAL(10,0) NOT NULL,
+longitud DECIMAL(10,0) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Restaurante(
+id BIGSERIAL PRIMARY KEY,
+nombre BIGINT REFERENCES Usuario(id),
+descripcion VARCHAR(255) NOT NULL,
+nit VARCHAR(255) NULL,
+razonSocial VARCHAR(255) NULL,
+representanteLegal VARCHAR(255) NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+idUsuario BIGINT REFERENCES Usuario(id)
+);
+
+CREATE TABLE Categoria(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+descripcion VARCHAR(255) NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE MarcaProducto(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+idProducto BIGINT REFERENCES Producto(id)
+);
+
+CREATE TABLE Producto(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+descripcion VARCHAR(255) NULL,
+idImagen VARCHAR(255) NOT NULL,
+precio DOUBLE PRECISION NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+idCategoria BIGINT REFERENCES Categoria(id)
+idRestaurante BIGINT REFERENCES Restaurante(id)
+);
+
+CREATE TABLE ImagenProducto(
+id BIGSERIAL PRIMARY KEY,
+idProducto BIGINT ,
+imagen VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+idProducto BIGINT REFERENCES Producto(id)
+);
+
+CREATE TABLE Pedido(
+id BIGSERIAL PRIMARY KEY,
+idCliente BIGINT NOT NULL,
+idRepartidor BIGINT NOT NULL,
+idDireccion BIGINT NOT NULL,
+idEstadoPedido BIGINT NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+FOREIGN KEY (idCliente) REFERENCES Usuario(id),
+FOREIGN KEY (idRepartidor) REFERENCES Usuario(id),
+FOREIGN KEY (idDireccion) REFERENCES Direccion(id),
+FOREIGN KEY (idEstadoPedido) REFERENCES EstadoPedido(id)
+);
+
+CREATE TABLE Pedido_Producto(
+idPedido BIGINT NOT NULL,
+idProducto BIGINT NOT NULL,
+cantidad BIGINT NOT NULL,
+subTotal DOUBLE NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL,
+PRIMARY KEY (idPedido, idProducto),
+FOREIGN KEY (idPedido) REFERENCES Pedido(id),
+FOREIGN KEY (idProducto) REFERENCES Producto(id)
+);
+
+CREATE TABLE EstadoPedido(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Factura(
+id BIGSERIAL PRIMARY KEY,
+idPedido BIGINT NOT NULL,
+ciNit VARCHAR(255) NOT NULL,
+nombreRazonSocial VARCHAR(255) NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+FOREIGN KEY (idPedido) REFERENCES Pedido(id)
+);
+
+CREATE TABLE Pago(
+id BIGSERIAL PRIMARY KEY,
+nombre VARCHAR(255) NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
+CREATE TABLE Pago_Pedido(
+idPago BIGINT,
+idPedido BIGINT,
+costoPedido DOUBLE NOT NULL,
+costoEnvio DOUBLE NOT NULL,
+costoTotal DOUBLE NOT NULL,
+creado TIMESTAMP(0) NOT NULL,
+actualizado TIMESTAMP(0) NOT NULL
+);
+
