@@ -61,7 +61,43 @@ Usuario.create = (usuario) => {
     });
 }
 
+Usuario.update = (usuario) => {
+    try {
+        const sql = `
+            UPDATE Usuario SET
+                nombre = $2,
+                aPaterno = $3,
+                aMaterno = $4,
+                imagen = $5,
+                telefono = $6,
+                fechaNacimiento = $7,
+                actualizado = $8
+            WHERE id = $1`;
 
+        db.none(sql, [
+            usuario.id,
+            usuario.nombre,
+            usuario.aPaterno,
+            usuario.aMaterno,
+            usuario.imagen,
+            usuario.telefono,
+            usuario.fechaNacimiento,
+            new Date()
+        ])
+        .then(() => {
+            console.log('Actualizacion exitosa:', usuario);
+        })
+        .catch(error => {
+            console.error('Error en la actualizacion:', error);
+        });
+
+    } catch (error) {
+        console.error('Error en el Usuario.metodo actualizacion:', error);
+    }
+};
+
+
+/*
 Usuario.findBtId = (id, callbackify) => {
     const sql = `SELECT 
     id,
@@ -79,8 +115,8 @@ Usuario.findBtId = (id, callbackify) => {
         id = $1`;
     return db.oneOrNone(sql, id).then(usuario => {callbackify(null, usuario)})
 }
-
-Usuario.findByEmail = (email) => {
+*/
+Usuario.findByID = (id) => {
     const sql = `SELECT 
     U.id,
     U.nombre,
@@ -90,6 +126,7 @@ Usuario.findByEmail = (email) => {
     U.email,
     U.telefono,
     U.contrasenia,
+    TO_CHAR(U.fechaNacimiento, 'YYYY-MM-DD') AS fechanacimiento,
     U.sesionToken,
 	json_agg(
 		json_build_object(
@@ -111,7 +148,46 @@ Usuario.findByEmail = (email) => {
 	ON
 		R.id = UR.idrol
     WHERE
-        email = $1
+        U.id = $1
+	GROUP BY U.id
+`;
+    return db.oneOrNone(sql, id);
+}
+
+
+Usuario.findByEmail = (email) => {
+    const sql = `SELECT 
+    U.id,
+    U.nombre,
+    U.aPaterno,
+    U.aMaterno,
+    U.imagen,
+    U.email,
+    U.telefono,
+    U.contrasenia,
+    TO_CHAR(U.fechaNacimiento, 'YYYY-MM-DD') AS fechanacimiento,
+    U.sesionToken,
+	json_agg(
+		json_build_object(
+		'id', R.id,
+		'nombre', R.nombre,
+		'imagen', R.imagen,
+		'ruta', R.ruta
+		)
+	) AS roles
+	
+    FROM
+        Usuario AS U
+	INNER JOIN
+		usuario_rol AS UR
+	ON
+		UR.idusuario = U.id
+	INNER JOIN
+		rol AS R
+	ON
+		R.id = UR.idrol
+    WHERE
+        U.email = $1
 	GROUP BY U.id
 `;
     return db.oneOrNone(sql, email);
