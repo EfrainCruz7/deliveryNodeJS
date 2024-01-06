@@ -10,7 +10,7 @@ module.exports = (app, upload) => {
 
     app.post('/api/usuarios/create', upload.array('image', 1), UsuariosController.registrarConImagen);
 
-    app.post('/api/usuarios/create', UsuariosController.registrar);
+   // app.post('/api/usuarios/create', UsuariosController.registrar);
 
     app.put('/api/usuarios/update', upload.array('image', 1), UsuariosController.updateDatos);
 

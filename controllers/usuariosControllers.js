@@ -28,11 +28,30 @@ module.exports = {
     },
 
     async findByID(req, res , next){
-        try{
+        try {
             const id = req.params.id;
             console.log(id);
-            const data = await Usuario.findByID(id);
-            console.log(`Usuario: ${data}`)
+            const miUsuario = await Usuario.findByID(id);
+            console.log(miUsuario);
+            if (!miUsuario) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'El email no fue encontrado'
+                });
+            }
+            const data = {
+                id: miUsuario.id,
+                nombre: miUsuario.nombre,
+                aPaterno: miUsuario.apellido_paterno,
+                aMaterno: miUsuario.apellido_materno,
+                imagen: miUsuario.imagen,
+                email: miUsuario.email,
+                telefono: miUsuario.telefono,
+                fechaNacimiento: miUsuario.fecha_nacimiento,
+                //sesionToken: `JWT ${token}`,
+                roles: miUsuario.roles
+            };
+            console.log(data);
             return res.status(200).json(data);
         }
         catch(error){
@@ -50,6 +69,8 @@ module.exports = {
         try {
             const usuario = req.body;
             const data = await Usuario.create(usuario);
+            console.log(data);
+
             await Rol.create(data.id,1)
             return res.status(201).json({
                 success: true,
@@ -74,15 +95,13 @@ module.exports = {
             console.log(usuario)
 
             const files = req.files;
-            if(!files || !files[0]) throw new Error('No hay archivos');
-               else{
+            if (files && files[0]) {
                 const pathImage = `image_${Date.now()}`; // nombre del archivo
                 const url = await storage(files[0], pathImage);
-                    if(url != undefined && url != null)
-                    {
-                        usuario.imagen = url;
-                    }
-               } 
+                if (url !== undefined && url !== null) {
+                    usuario.imagen = url;
+                }
+            }
 
             const data = await Usuario.create(usuario);
             await Rol.create(data.id,1)
@@ -109,18 +128,15 @@ module.exports = {
         try {
             const usuario = JSON.parse(req.body.usuario);
             console.log(usuario);
-
+    
             const files = req.files;
-            if(!files || !files[0]) throw new Error('No hay archivos');
-               else{
+            if (files && files[0]) { // Solo procesar si hay archivos
                 const pathImage = `image_${Date.now()}`; // nombre del archivo
                 const url = await storage(files[0], pathImage);
-                    if(url != undefined && url != null)
-                    {
-                        usuario.imagen = url;
-                    }
-               } 
-
+                if (url != undefined && url != null) {
+                    usuario.imagen = url;
+                }
+            }
             Usuario.update(usuario);
             console.log(usuario);
             return res.status(201).json({
@@ -128,14 +144,13 @@ module.exports = {
                 message: 'Datos actualizados correctamente',
             });
         }
-        catch(error)
-        {
+        catch (error) {
             console.log(`Error: ${error}`);
             return res.status(501).json({
                 success: false,
                 message: 'Hubo un error en la actualizacion de datos',
                 error: error
-            })
+            });
         }
     },
 
@@ -164,12 +179,12 @@ module.exports = {
                 const data = {
                     id: miUsuario.id,
                     nombre: miUsuario.nombre,
-                    aPaterno: miUsuario.apaterno,
-                    aMaterno: miUsuario.amaterno,
+                    aPaterno: miUsuario.apellido_paterno,
+                    aMaterno: miUsuario.apellido_materno,
                     imagen: miUsuario.imagen,
                     email: miUsuario.email,
                     telefono: miUsuario.telefono,
-                    fechaNacimiento: miUsuario.fechanacimiento,
+                    fechaNacimiento: miUsuario.fecha_nacimiento,
                     sesionToken: `JWT ${token}`,
                     roles : miUsuario.roles
                 };

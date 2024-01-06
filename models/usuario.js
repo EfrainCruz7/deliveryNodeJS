@@ -1,6 +1,6 @@
 // Importar el módulo de la base de datos
 // llamar al pgp db para acceder a la base de datos
-const { callbackify } = require('util');
+//const { callbackify } = require('util');
 const db = require('../config/config');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
@@ -25,22 +25,22 @@ Usuario.create = (usuario) => {
                 usuario.contrasenia = hash; // Actualiza la contraseña del usuario con el hash
                 usuario.isActivo = true;
 
-                const sql = `INSERT INTO Usuario (
+                const sql = `INSERT INTO usuario (
                     nombre,
-                    aPaterno,
-                    aMaterno,
+                    apellido_paterno,
+                    apellido_materno,
                     imagen,
                     email,
                     telefono,
                     contrasenia,
-                    fechaNacimiento,
-                    isActivo,
-                    sesionToken,
+                    fecha_nacimiento,
+                    is_activo,
+                    sesion_token,
                     creado,
                     actualizado)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
 
-                db.oneOrNone(sql, [
+                    db.oneOrNone(sql, [
                     usuario.nombre,
                     usuario.aPaterno,
                     usuario.aMaterno,
@@ -63,16 +63,16 @@ Usuario.create = (usuario) => {
 
 Usuario.update = (usuario) => {
     try {
-        const sql = `
-            UPDATE Usuario SET
-                nombre = $2,
-                aPaterno = $3,
-                aMaterno = $4,
-                imagen = $5,
-                telefono = $6,
-                fechaNacimiento = $7,
-                actualizado = $8
-            WHERE id = $1`;
+        const sql =`
+        UPDATE Usuario SET
+            nombre = $2,
+            apellido_paterno = $3,
+            apellido_materno = $4,
+            imagen = $5,
+            telefono = $6,
+            fecha_nacimiento = $7,
+            actualizado = $8
+        WHERE id = $1`;
 
         db.none(sql, [
             usuario.id,
@@ -96,38 +96,41 @@ Usuario.update = (usuario) => {
     }
 };
 
+Usuario.updateToken = (id, token) => {
+    try {
+        const sql = `
+            UPDATE Usuario SET
+               sesion_token =$2
+            WHERE id = $1`;
 
-/*
-Usuario.findBtId = (id, callbackify) => {
-    const sql = `SELECT 
-    id,
-    nombre,
-    aPaterno,
-    aMaterno,
-    email,
-    telefono,
-    contrasenia,
-    imagen,
-    sesionToken
-    FROM
-        Usuario
-    WHERE
-        id = $1`;
-    return db.oneOrNone(sql, id).then(usuario => {callbackify(null, usuario)})
-}
-*/
+            db.none(sql, [
+            id,
+            token
+        ])
+        .then(() => {
+            console.log('Actualizacion exitosa:', token);
+        })
+        .catch(error => {
+            console.error('Error en la actualizacion:', error);
+        });
+
+    } catch (error) {
+        console.error('Error en el Usuario.metodo actualizacion:', error);
+    }
+};
+
 Usuario.findByID = (id) => {
     const sql = `SELECT 
     U.id,
     U.nombre,
-    U.aPaterno,
-    U.aMaterno,
+    U.apellido_paterno,
+    U.apellido_materno,
     U.imagen,
     U.email,
     U.telefono,
     U.contrasenia,
-    TO_CHAR(U.fechaNacimiento, 'YYYY-MM-DD') AS fechanacimiento,
-    U.sesionToken,
+    TO_CHAR(U.fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
+    U.sesion_token,
 	json_agg(
 		json_build_object(
 		'id', R.id,
@@ -140,13 +143,13 @@ Usuario.findByID = (id) => {
     FROM
         Usuario AS U
 	INNER JOIN
-		usuario_rol AS UR
+		usuario_has_rol AS UHR
 	ON
-		UR.idusuario = U.id
+		UHR.id_usuario = U.id
 	INNER JOIN
 		rol AS R
 	ON
-		R.id = UR.idrol
+		R.id = UHR.id_rol
     WHERE
         U.id = $1
 	GROUP BY U.id
@@ -159,14 +162,14 @@ Usuario.findByEmail = (email) => {
     const sql = `SELECT 
     U.id,
     U.nombre,
-    U.aPaterno,
-    U.aMaterno,
+    U.apellido_paterno,
+    U.apellido_materno,
     U.imagen,
     U.email,
     U.telefono,
     U.contrasenia,
-    TO_CHAR(U.fechaNacimiento, 'YYYY-MM-DD') AS fechanacimiento,
-    U.sesionToken,
+    TO_CHAR(U.fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
+    U.sesion_token,
 	json_agg(
 		json_build_object(
 		'id', R.id,
@@ -179,13 +182,13 @@ Usuario.findByEmail = (email) => {
     FROM
         Usuario AS U
 	INNER JOIN
-		usuario_rol AS UR
+		usuario_has_rol AS UHR
 	ON
-		UR.idusuario = U.id
+		UHR.id_usuario = U.id
 	INNER JOIN
 		rol AS R
 	ON
-		R.id = UR.idrol
+		R.id = UHR.id_rol
     WHERE
         U.email = $1
 	GROUP BY U.id
@@ -193,13 +196,7 @@ Usuario.findByEmail = (email) => {
     return db.oneOrNone(sql, email);
 }
 
-/*Usuario.isPasswordMatched = (usuarioPassword, hash) => {
-    const myPasswordHashed = crypto.createHash('md5').update(usuarioPassword).digest('hex');
-    if(myPasswordHashed === hash)
-    {return true;}
-    return false;
-};
-*/
+
 
 module.exports = Usuario;
 
